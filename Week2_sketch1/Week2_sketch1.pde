@@ -1,3 +1,7 @@
+// My goal was to experiment with spirals and the golden ratio
+// The result has an organic quality that suggests eating and food preparation - plates, dinner table, kitchen decor
+// https://github.com/ELearningRufian/Processing/tree/master/Week2_sketch1
+
 size(800, 640);
 background(#042004);
 stroke(#1A1919);
@@ -8,7 +12,7 @@ quad(80,320,400,0,720,320,400,640);
 rect(150,70,500,500);
 
 float size = 100.0;
-float growth = 0.01618033988749894848204586834;
+float growth = 1.618033988749894848204586834 / size;
 colorMode(HSB);
 for (int i = 18 ; i > 0 ; i--)
 {   
