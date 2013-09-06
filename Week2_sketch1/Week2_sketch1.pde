@@ -1,5 +1,5 @@
 size(800, 640);
-background(0);
+background(#042004);
 stroke(#1A1919);
 float canvasWidth = 800.0;
 float canvasHeight = 640.0;
@@ -8,9 +8,9 @@ quad(80,320,400,0,720,320,400,640);
 rect(150,70,500,500);
 
 float size = 100.0;
-float growth = 0.0115;
+float growth = 0.01618033988749894848204586834;
 colorMode(HSB);
-for (int i=18;i>0;i--)
+for (int i = 18 ; i > 0 ; i--)
 {   
    float centerX = canvasWidth / 2.0 + size * exp(i*growth) * cos(i);   
    float centerY = canvasHeight / 2.0 + size * exp(i*growth) * sin(i);
