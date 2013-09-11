@@ -1,0 +1,3 @@
+(C) Copyright 2013 Eusebio Rufian-Zilbermann
+
+Permission granted to github.com for displaying and distributing this code.
