@@ -3,7 +3,7 @@
 // on an oscilloscope while playing with signals of varying phases and frequencies
 // I would like to recreate some of that feeling for other people to enjoy
 // The starting point is a blank oscilloscope - it is not a flat background
-// I'm know I'm asking for flexibility in the definition of 'blank'
+// I know I'm asking for flexibility in the definition of 'blank'
 // but I hope you will agree it fits a specific artistic purpose
 // both for recreating the "oscilloscope feeling" and for assisting in the drawing 
 // (I can get better results if I can see how far from the center I am before the first click)
@@ -42,7 +42,7 @@ color grid = #022a2d;
 color frame = #0c0d11;
 
 /* Defaults */
-color curveColor = phosphorOn[4];
+color curveColor = phosphorOn[0];
 float horizontalFrequency = 3;
 float verticalFrequency = 4;
 float phaseDifference = PI * 0.5;
