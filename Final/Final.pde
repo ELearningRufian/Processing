@@ -11,12 +11,12 @@ Minim minim;
 // Each instrument (voice) will use a different player so that
 // they can play simultaneously
 AudioPlayer[] player;
-// The correct number of fragments is 53 but it will take time to
-// get them ready and I'd rather start programming before all the
-// audio is ready
-int fragmentCount = 15;
+// A special player, the pulse, plays continuously a C note
+AudioPlayer thePulse;
+// There are 53 fragments in the score
+int fragmentCount = 53;
 // The intention is to make it multi-voice but the first attempt is single-voice
-int voiceCount = 1;
+int voiceCount = 4;
 // Each voice will be playing a specific fragment (0 to 52)
 int[] voicePosition;
 // We will need a table of file names
@@ -29,9 +29,15 @@ int[] voicePosition;
 // files for Clarinet from 1 to 53 on voice 2, etc
 String[][] voiceFile;
 
+// each voice will have a probability of repeat which starts at a
+// default value and decreases every time a repeat happens
+int defaultProbabilityOfRepeat = 80;
+int deltaProbabilityOfRepeat = 20;
+int[] probabilityOfRepeat;
+
 void setup()
 {
-  size(1024, 768, P3D);
+  size(1280, 720, P3D);
   
   // we pass this to Minim so that it can load files from the data directory
   minim = new Minim(this);
@@ -39,7 +45,19 @@ void setup()
   voiceFile = new String[voiceCount][fragmentCount]; 
   player = new AudioPlayer[voiceCount];
   voicePosition = new int[voiceCount];
+  probabilityOfRepeat = new int[voiceCount];
   initializeVoiceFile(0,"PianoAndStrings");
+  initializeVoiceFile(1,"PianoAndStrings");
+  initializeVoiceFile(2,"PianoAndStrings");
+  initializeVoiceFile(3,"PianoAndStrings");
+  player[0].setPan(-0.50);
+  player[1].setPan(0.5);
+  player[2].setPan(-0.75);
+  player[3].setPan(0.75);
+  
+  thePulse = minim.loadFile("PianoAndStrings_00.wav");
+  thePulse.setGain(-10.0);
+  thePulse.loop();
 }
 
 void initializeVoiceFile(int voiceNumber, String instrumentName)
@@ -57,6 +75,9 @@ void initializeVoiceFile(int voiceNumber, String instrumentName)
     // e.g., voice[1][0] = "PianoAndStrings_01.wav"
     voiceFile[voiceNumber][fragmentIndex]=String.format("%s_%02d.wav",instrumentName,fragmentIndex+1);
   }
+  
+  player[voiceNumber] = minim.loadFile(voiceFile[voiceNumber][0]);
+  probabilityOfRepeat[voiceNumber] = defaultProbabilityOfRepeat;
 }
 
 void draw()
@@ -66,11 +87,35 @@ void draw()
 
   for (int voiceIndex = 0; voiceIndex < voiceCount ; ++voiceIndex)
   {
-    if (null == player[voiceIndex] || !player[voiceIndex].isPlaying() && !player[voiceIndex].isLooping() && fragmentCount > voicePosition[voiceIndex])
-    {
-      player[voiceIndex] = minim.loadFile(voiceFile[voiceIndex][voicePosition[voiceIndex]]);
-      player[voiceIndex].play();
-      voicePosition[voiceIndex]++;
+    if (!player[voiceIndex].isPlaying())
+    {            
+      if ((int)random(0.0,100.0) > probabilityOfRepeat[voiceIndex])
+      {
+        if (fragmentCount > voicePosition[voiceIndex])
+        {
+          print("Playing", voiceIndex, voicePosition[voiceIndex], " ");
+          println(voiceFile[voiceIndex][voicePosition[voiceIndex]]);
+          player[voiceIndex].close();
+          player[voiceIndex] = minim.loadFile(voiceFile[voiceIndex][voicePosition[voiceIndex]]);      
+          voicePosition[voiceIndex]++;
+          probabilityOfRepeat[voiceIndex] = defaultProbabilityOfRepeat; 
+          player[voiceIndex].play();
+        }
+        else
+        {
+          println("Ending ", voiceIndex);
+          //player[voiceIndex].rewind();
+          //player[voiceIndex].pause();
+          probabilityOfRepeat[voiceIndex] = 0;
+        }        
+      } 
+      else
+      {
+        println("Repeating ", voiceIndex);
+        probabilityOfRepeat[voiceIndex] -= deltaProbabilityOfRepeat;
+        player[voiceIndex].rewind();        
+        player[voiceIndex].play();
+      }
     }
   }
     
@@ -83,11 +128,30 @@ void draw()
     line( x1, 150 + player[0].right.get(i)*50, x2, 150 + player[0].right.get(i+1)*50 );
   }
   
-  // Exit when the last voice is done 
-  if (voicePosition[voiceCount -1] == fragmentCount && !player[voiceCount-1].isPlaying())
+  if (true == areWeDone())
   {
+    println("Closing down");
+    //for (int voiceIndex = 0; voiceIndex < voiceCount ; ++voiceIndex)
+    //{
+      //player[voiceIndex].close();
+    //}
+    thePulse.pause();
+    //thePulse.close();
+    minim.stop();
     exit();
   }
 }
 
-
+// Return true when the last voice is done 
+boolean areWeDone()
+{
+  for (int voiceIndex = 0; voiceIndex < voiceCount ; ++voiceIndex)
+  {
+    if (voicePosition[voiceIndex] < fragmentCount || player[voiceIndex].isPlaying())
+    {
+      return false;
+    }
+  }
+  
+  return true;
+}
