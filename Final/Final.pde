@@ -4,12 +4,7 @@
 // to implement all the rules but I think it is possible to achieve an
 // approximation that will be sufficiently interesting to play with
 
-import ddf.minim.spi.*;
-import ddf.minim.signals.*;
 import ddf.minim.*;
-import ddf.minim.analysis.*;
-import ddf.minim.ugens.*;
-import ddf.minim.effects.*;
 
 // Named Constants
 
@@ -27,7 +22,7 @@ String prefixPath = "http://zilbermann.com/ComputationalArts/Final/Data/";
 // Switch between local and web-based files
 boolean webBased = false;
 // Extension for the audio files
-String extAudio = ".wav";
+String extAudio = ".mp3";
 
 // Global (class) variables and structures
 
@@ -270,7 +265,7 @@ void scheduleCurrentFragment(int voiceIndex)
 // draw waveforms for the first 4 voices
 void drawWaves()
 {
-  int gain = 100; 
+  int gain = 150; 
   stroke(0);
   rect(0, 0, 1280, 411);
   for(int i = 0; i < player[0].bufferSize() - 1; i++)
