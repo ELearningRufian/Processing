@@ -22,6 +22,12 @@ int voiceCount = 4;
 // default value and decreases every time a repeat happens
 int defaultProbabilityOfRepeat = 80;
 int deltaProbabilityOfRepeat = 20;
+// Prefix path for web-based files
+String prefixPath = "http://zilbermann.com/ComputationalArts/Final/Data/"; 
+// Switch between local and web-based files
+boolean webBased = false;
+// Extension for the audio files
+String extAudio = ".wav";
 
 // Global (class) variables and structures
 
@@ -56,7 +62,7 @@ int[] probabilityOfRepeat;
 // Initialize sketch
 void setup()
 {
-  size(1280, 720, P3D);
+  size(1280, 720);
   
   // we pass this to Minim so that it can load files from the data directory
   minim = new Minim(this);
@@ -73,7 +79,7 @@ void setup()
   initializeVoice(2,"PianoAndStrings", -0.75);
   initializeVoice(3,"PianoAndStrings",  0.75);
   
-  thePulse = minim.loadFile("PianoAndStrings_00.wav");
+  thePulse = minim.loadFile("PianoAndStrings_00" + extAudio);
   thePulse.setGain(-10.0);
   thePulse.loop();
 }
@@ -123,11 +129,12 @@ void initializeVoice(int voiceNumber, String instrumentName, float panning)
   }
   
   voicePosition[voiceNumber] = 0;
+  String formatter = webBased ? "http://zilbermann.com/ComputationalArts/Final/Data/%s_%02d" + extAudio:"%s_%02d" + extAudio;
   for (int fragmentIndex = 0; fragmentIndex < fragmentCount; ++fragmentIndex)
   {
     // The fragment names start at 01 but the array starts at 0 so we need to add 1
     // e.g., voice[1][0] = "PianoAndStrings_01.wav"
-    voiceFile[voiceNumber][fragmentIndex]=String.format("%s_%02d.wav",instrumentName,fragmentIndex+1);
+    voiceFile[voiceNumber][fragmentIndex]=String.format(formatter,instrumentName,fragmentIndex+1);
   }
   
   player[voiceNumber] = minim.loadFile(voiceFile[voiceNumber][0]);
