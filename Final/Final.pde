@@ -44,6 +44,8 @@ AudioPlayer[] player;
 AudioPlayer thePulse;
 // Each voice will be playing a specific fragment (0 to 52)
 int[] voicePosition;
+// Each voice may be in a muted state
+boolean[] mutedState;
 // We need to minimize delays when playing, using a flag array will enable us
 // to trigger the samples with the shortest delay between them
 boolean[] playNow;
@@ -58,6 +60,10 @@ boolean[] playNow;
 String[][] voiceFile;
 // the dynamic probability of repeat for each voice
 int[] probabilityOfRepeat;
+// Voice Density
+int voiceDensity;
+// Voice Density image
+PImage[] voiceDensityImage;
 
 // Initialize sketch
 void setup()
@@ -71,8 +77,10 @@ void setup()
   voiceFile = new String[voiceCount][fragmentCount]; 
   player = new AudioPlayer[voiceCount];
   voicePosition = new int[voiceCount];
+  mutedState = new boolean[voiceCount];
   playNow = new boolean[voiceCount];
   probabilityOfRepeat = new int[voiceCount];
+  voiceDensityImage = new PImage[voiceCount];
 
   initializeVoice(0,"PianoAndStrings", -0.50);
   initializeVoice(1,"PianoAndStrings",  0.50);
@@ -82,37 +90,61 @@ void setup()
   thePulse = minim.loadFile("PianoAndStrings_00" + extAudio);
   thePulse.setGain(-10.0);
   thePulse.loop();
-}
+  
+  background(0);
+  fill(0);
+  image(voiceDensityImage[voiceCount-1], 0, 412);  
+  }
 
 // Process iteration for sketch
 void draw()
-{
-  background(0);
-  stroke(255);
-  
+{ 
   if (!sequencing)
   {
     sequencing = true;
     calculateWhatToPlay();
+    drawWaves();
     playIt();
     sequencing = false;  
   }
-  
-  // draw the waveforms (modified version of the example in the Minim documentation for the play() method) 
-  for(int i = 0; i < player[0].bufferSize() - 1; i++)
-  {
-    float x1 = map( i, 0, player[0].bufferSize(), 0, width );
-    float x2 = map( i+1, 0, player[0].bufferSize(), 0, width );
-    line( x1, 50 + player[0].left.get(i)*50, x2, 50 + player[0].left.get(i+1)*50 );
-    line( x1, 150 + player[0].right.get(i)*50, x2, 150 + player[0].right.get(i+1)*50 );
-  }
-  
+    
   if (true == areWeDone())
   {
     println("Closing down");
     thePulse.pause();
     minim.stop();
     exit();
+  }
+}
+
+void keyReleased()
+{
+  switch (key)
+  {
+    case '1':
+      image(voiceDensityImage[0], 0, 412);
+      mutedState[1]=true;
+      mutedState[2]=true;
+      mutedState[3]=true;
+      break;
+    case '2':
+      image(voiceDensityImage[1], 0, 412);
+      mutedState[1]=false;
+      mutedState[2]=true;
+      mutedState[3]=true;
+      break;
+    case '3':
+      image(voiceDensityImage[2], 0, 412);
+      mutedState[1]=false;
+      mutedState[2]=false;
+      mutedState[3]=true;
+      break;
+    case '4':
+      image(voiceDensityImage[3], 0, 412);
+      mutedState[1]=false;
+      mutedState[2]=false;
+      mutedState[3]=false;
+      break;
   }
 }
 
@@ -141,6 +173,7 @@ void initializeVoice(int voiceNumber, String instrumentName, float panning)
   playNow[voiceNumber] = false;
   probabilityOfRepeat[voiceNumber] = defaultProbabilityOfRepeat;
   player[voiceNumber].setPan(panning);
+  voiceDensityImage[voiceNumber] = loadImage(String.format("VoiceDensity_%02d.png", voiceNumber));
 }
 
 // Return true when the last voice is done 
@@ -191,7 +224,12 @@ void playIt()
   {
     if (playNow[voiceIndex])
     {
+      player[voiceIndex].mute();
       player[voiceIndex].play();
+      if (!mutedState[voiceIndex])
+      {
+        player[voiceIndex].unmute();
+      }
       playNow[voiceIndex] = false;
     }
   }
@@ -227,4 +265,40 @@ void scheduleCurrentFragment(int voiceIndex)
   probabilityOfRepeat[voiceIndex] -= deltaProbabilityOfRepeat;
   player[voiceIndex].rewind();        
   playNow[voiceIndex] = true;
+}
+
+// draw waveforms for the first 4 voices
+void drawWaves()
+{
+  int gain = 100; 
+  stroke(0);
+  rect(0, 0, 1280, 411);
+  for(int i = 0; i < player[0].bufferSize() - 1; i++)
+  {
+    float x01 = map( i, 0, player[0].bufferSize(), 0, width );
+    float x02 = map( i+1, 0, player[0].bufferSize(), 0, width );
+    float x11 = map( i, 0, player[1].bufferSize(), 0, width );
+    float x12 = map( i+1, 0, player[1].bufferSize(), 0, width );
+    float x21 = map( i, 0, player[2].bufferSize(), 0, width );
+    float x22 = map( i+1, 0, player[2].bufferSize(), 0, width );
+    float x31 = map( i, 0, player[3].bufferSize(), 0, width );
+    float x32 = map( i+1, 0, player[3].bufferSize(), 0, width );
+    stroke(255, 255, 255);
+    line( x01, 50 + player[0].mix.get(i)*gain, x02, 50 + player[0].mix.get(i+1)*gain );
+    if (mutedState[1]) 
+    {
+      stroke(255, 0, 255);
+    }
+    line( x11, 150 + player[1].mix.get(i)*gain, x12, 150 + player[1].mix.get(i+1)*gain );
+    if (mutedState[2]) 
+    {
+      stroke(255, 0, 255);
+    }
+    line( x21, 250 + player[2].mix.get(i)*gain, x22, 250 + player[2].mix.get(i+1)*gain );
+    if (mutedState[3]) 
+    {
+      stroke(255, 0, 255);
+    }
+    line( x31, 350 + player[3].mix.get(i)*gain, x32, 350 + player[3].mix.get(i+1)*gain );
+  }
 }
